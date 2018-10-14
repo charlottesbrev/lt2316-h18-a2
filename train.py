@@ -5,13 +5,61 @@
 
 # Add/update whatever imports you need.
 from argparse import ArgumentParser
+from keras.layers import Input, Conv2D, Dense, Activation, Flatten, Dropout
+from keras import Model
 import mycoco
 
 # If you do option A, you may want to place your code here.  You can
 # update the arguments as you need.
-def optA():
+def optA(categories):
+    # building a nn
+    inputlayer = Input(shape=(200, 200, 3))
+    conv2dlayer = Conv2D(10, (5,5))(inputlayer)
+    flattenlayer = Flatten()(conv2dlayer)
+    relulayer = Activation('tanh')(flattenlayer)
+    #dropoutlayer = Dropout(0.1)(relulayer)
+    #denseinitial = Dense(100, activation="tanh")(flattenlayer)
+    denselayer = Dense(1)(relulayer)
+    sigmoidlayer = Activation('sigmoid')(denselayer)
+    model = Model(inputlayer, sigmoidlayer)
+    model.summary()
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    categories_fixed = [[x] for x in categories]
+
     mycoco.setmode('train')
-    print("Option A not implemented!")
+
+    # train the nn
+    subcat1_ids, subcat2_ids = mycoco.query(categories_fixed)
+    if len(subcat1_ids) == 0:
+        print("unable to find resources for %s" % (categories[0]))
+    else:
+        print("found %d entries for %s" % (len(subcat1_ids), categories[0]))
+    if len(subcat2_ids) == 0:
+        print("unable to find resources for %s" % (categories[1]))
+    else:
+        print("found %d entries for %s" % (len(subcat2_ids), categories[1]))
+    if len(subcat1_ids) == 0 or len(subcat2_ids) == 0:
+        return
+
+    train_images = mycoco.iter_images([subcat1_ids, subcat2_ids], [0, 1], batch=10)
+    model.fit_generator(train_images, steps_per_epoch=40, epochs=30)
+    #model.fit_generator(train_images, steps_per_epoch=4, epochs=3)
+
+    mycoco.setmode('test')
+
+    # evaluate the nn
+    test_subcat1_ids, test_subcat2_ids = mycoco.query(categories_fixed)
+    test_catdog_images = mycoco.iter_images([test_subcat1_ids, test_subcat2_ids], [0, 1], batch=200)
+    test_imgs = next(test_catdog_images)
+
+    predictions = model.predict(test_imgs[0])
+    classes = [(1 if x >= 0.5 else 0) for x in predictions]
+    correct = [x[0] == x[1] for x in zip(classes,test_imgs[1])]
+    s = sum(correct)
+    n = len(correct)
+    print("correct %d / %d (%.1f%%)" % (s, n, 100.0*s/n) )
+    #print("Option A not implemented!")
 
 # If you do option B, you may want to place your code here.  You can
 # update the arguments as you need.
@@ -51,7 +99,7 @@ if __name__ == "__main__":
 
     print("Executing option " + args.option)
     if args.option == 'A':
-        optA()
+        optA(args.categories)
     elif args.option == 'B':
         optB()
     else:

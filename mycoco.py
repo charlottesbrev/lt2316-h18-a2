@@ -115,6 +115,8 @@ def iter_images(idlists, cats, size=(200,200), batch=1):
     as parallel lists at size of batch.
     By default, randomizes the order and resizes the image.
     '''
+    global annotcoco
+
     if not annotcoco:
         raise ValueError
     if batch < 1:
@@ -134,7 +136,7 @@ def iter_images(idlists, cats, size=(200,200), batch=1):
         labels = []
         for r in randomlist:
             imgfile = annotcoco.loadImgs([r[0]])[0]['file_name']
-            img = io.imread(TRAIN_IMG_DIR + imgfile)
+            img = io.imread(imgdir + imgfile)
             imgscaled = tform.resize(img, size)
             # Colour images only.
             if imgscaled.shape == (size[0], size[1], 3):
