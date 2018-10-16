@@ -13,17 +13,65 @@ import mycoco
 # update the arguments as you need.
 def optA(categories):
     # building a nn
+
+    # 0) 'input_1': no weights
+    #    output: 200, 200, 3
     inputlayer = Input(shape=(200, 200, 3))
+
+    # 1) 'conv2d_1':
+    #   weights[2] {
+    #       5 : {
+    #           5 : { 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}}
+    #           5 : { 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}}
+    #           5 : { 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}}
+    #           5 : { 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}}
+    #           5 : { 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}, 3 : {10,10,10}}
+    #       }
+    #       10 (floats)
+    #   }
+    #    output: 195, 195, 3
     conv2dlayer = Conv2D(10, (5,5))(inputlayer)
+
+    # 2) 'flatten_1': no weights
+    #    output: ?, ?
     flattenlayer = Flatten()(conv2dlayer)
+
+    # 3) 'activation_1': no weights
+    #    output: ?, ?
     relulayer = Activation('tanh')(flattenlayer)
+
     #dropoutlayer = Dropout(0.1)(relulayer)
     #denseinitial = Dense(100, activation="tanh")(flattenlayer)
+
+    # 4) 'dense_2':
+    #   weights[2] {
+    #       384160,  (= 10 * 196 * 196)
+    #       1 (array)
+    #   }
+    #    output: ?, 1
     denselayer = Dense(1)(relulayer)
+
+    # 'activation_2' layer 5: no weights
     sigmoidlayer = Activation('sigmoid')(denselayer)
+
     model = Model(inputlayer, sigmoidlayer)
     model.summary()
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    #len(model.layers[1].get_weights()) = 2
+    #len(model.layers[1].get_weights()[0]) = 5
+    #len(model.layers[1].get_weights()[1]) = 10
+    #len(model.layers[1].get_weights()[1][0]) = INVALID (float)
+
+    #len(model.layers[1].get_weights()[0][0]) = 5
+    #len(model.layers[1].get_weights()[0][0][0]) = 3
+    #len(model.layers[1].get_weights()[0][0][0][0]) = 10
+
+    #len(model.layers[4].get_weights()) = 2
+    #len(model.layers[1].get_weights()[0]) = 384160
+    #len(model.layers[1].get_weights()[1]) = 1
+
+    # how should I get an image from this???
 
     categories_fixed = [[x] for x in categories]
 
@@ -43,8 +91,8 @@ def optA(categories):
         return
 
     train_images = mycoco.iter_images([subcat1_ids, subcat2_ids], [0, 1], batch=10)
-    model.fit_generator(train_images, steps_per_epoch=40, epochs=30)
-    #model.fit_generator(train_images, steps_per_epoch=4, epochs=3)
+    #model.fit_generator(train_images, steps_per_epoch=40, epochs=30)
+    model.fit_generator(train_images, steps_per_epoch=4, epochs=3)
 
     mycoco.setmode('test')
 
