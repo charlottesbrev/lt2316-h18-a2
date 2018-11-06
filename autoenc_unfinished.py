@@ -40,5 +40,5 @@ autoencoder.compile(optimizer='adam', loss='mean_absolute_error')
 mycoco.setmode('train')
 zebraids, horseids = mycoco.query([['zebra'], ['horse']])
 imgs = mycoco.iter_images([zebraids, horseids], [0, 1], batch=10, size=(200,200, 3))
-autoencoder.fit_generator(test_func(a), steps_per_epoch=4, epochs=4)
+autoencoder.fit_generator(test_func(imgs), steps_per_epoch=4, epochs=4)
 
