@@ -5,22 +5,8 @@ from keras import backend as K
 import mycoco
 import numpy as np
 
-<<<<<<< HEAD
 def test_func(a):
 	return [a,a]
-=======
-def autoencoder_generator(iterator, batch_size):
-    """
-    Turns iterator of tuple(image, category) into generator of tuple(batch(image), batch(image))
-    """
-    while True:
-        batch = []
-        for b in range(batch_size):
-            sample = next(iterator)
-            batch.append(sample[0][0])
-        result = array(batch)
-        yield result, result
->>>>>>> 38ad0a70d491d44ebff82ad03dd8c34c089e0b0d
 
 input_img = Input(shape=(200, 200, 3))  # adapt this if using `channels_first` image data format
 
@@ -54,10 +40,5 @@ autoencoder.compile(optimizer='adam', loss='mean_absolute_error')
 mycoco.setmode('train')
 zebraids, horseids = mycoco.query([['zebra'], ['horse']])
 imgs = mycoco.iter_images([zebraids, horseids], [0, 1], batch=10, size=(200,200, 3))
-<<<<<<< HEAD
 autoencoder.fit_generator(test_func(a), steps_per_epoch=4, epochs=4)
-=======
-r = autoencoder_generator(imgs, 4)
-autoencoder.fit_generator(r, steps_per_epoch=4, epochs=4)
->>>>>>> 38ad0a70d491d44ebff82ad03dd8c34c089e0b0d
 
